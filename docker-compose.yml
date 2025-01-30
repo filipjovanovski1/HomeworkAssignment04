@@ -1,0 +1,50 @@
+version: '3.9'
+services:
+  # -----------------
+  # PYTHON / FLASK APP
+  # -----------------
+  python-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: python-service
+    ports:
+      - "5001:5000"  # Host:Container
+    volumes:
+      - ./csv:/app/csv  # Persist CSV files
+    networks:
+      - stock-exchange-net
+
+  # -----------------
+  # JAVA / SPRING BOOT
+  # -----------------
+  java-service:
+    build:
+      context: ./Homework-Demo
+      dockerfile: Dockerfile
+    container_name: java-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      - python-service
+    networks:
+      - stock-exchange-net
+
+  # -----------------
+  # REACT FRONTEND
+  # -----------------
+  react-service:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: react-service
+    ports:
+      - "3000:80"   # Host port 3000 mapped to container port 80 (NGINX)
+    depends_on:
+      - java-service
+    networks:
+      - stock-exchange-net
+
+networks:
+  stock-exchange-net:
+    driver: bridge
